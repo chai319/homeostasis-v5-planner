@@ -206,9 +206,28 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
     textarea {
-      min-height: 90px;
-      line-height: 1.5;
+      min-height: 150px;
+      line-height: 1.6;
       resize: vertical;
+      overflow-y: hidden;
+      padding: 14px 16px;
+    }
+    .ai-prompt-hint {
+      font-size: 0.78rem;
+      color: #1d4ed8;
+      background: #eff6ff;
+      border-left: 3px solid #2563eb;
+      padding: 5px 10px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .ai-prompt-hint::before {
+      content: "🤖";
+      font-size: 0.85rem;
     }
 
     /* 3カラム入力（基本情報） */
@@ -453,29 +472,20 @@
         <h2 class="section-title">1. 生体モデルの選定</h2>
         <p class="section-desc">キャラクターの元ネタとなるホルモン・器官を決定。</p>
 
-        <!-- 未登場・発展カタログ -->
-        <details class="catalog">
-          <summary>💡 モデル候補カタログ（未登場・発展ホルモン）</summary>
-          <div class="catalog-body">
-            <table class="catalog-table">
-              <tr><th>モデル名</th><th>分泌場所 / 作用</th><th>特徴・おすすめ設定</th></tr>
-              <tr><td><b>バソプレシン</b></td><td>脳下垂体後葉 → 腎臓</td><td>水の再吸収促進。喉が渇いた時の救世主。過保護系。</td></tr>
-              <tr><td><b>アルドステロン</b></td><td>副腎皮質 → 腎臓</td><td>Na⁺再吸収・血圧維持。持久走に命をかける。</td></tr>
-              <tr><td><b>メラトニン</b></td><td>松果体 → 脳・全身</td><td>概日リズム・睡眠促進。夜更かしスマホで分泌停止。</td></tr>
-              <tr><td><b>パラトルモン</b></td><td>副甲状腺 → 骨・腎臓</td><td>血中Ca²⁺上昇。骨を削ってでもCaを守る過激派。</td></tr>
-              <tr><td><b>カルシトニン</b></td><td>甲状腺 → 骨</td><td>血中Ca²⁺低下。骨を守りたい穏健派（パラトルモンと拮抗）。</td></tr>
-              <tr><td><b>ANP（心房性Na利尿）</b></td><td>心房 → 腎臓・血管</td><td>血圧低下・利尿。血圧が上がりすぎた時のブレーキ役。</td></tr>
-            </table>
-          </div>
-        </details>
+        <div style="background: #f1f5f9; border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 0.85rem; color: #334155;">
+          <b>🧬 生物要素なら何でもOK！</b><br>
+          ホルモンに限らず、受容体、免疫細胞（マクロファージ・キラーT等）、自律神経、器官、酵素、細胞小器官（ミトコンドリア等）など、体内環境に関わるあらゆる要素を自由にモデルに選べます。
+        </div>
 
         <div class="field-group">
           <label class="field-label">モデルとなる生体要素<span class="badge-opt">任意</span></label>
-          <input type="text" id="input_model" placeholder="例: バソプレシン、メラトニン、カルシトニン など" oninput="saveData()">
+          <div class="ai-prompt-hint">生成AIが理解できるよう、ホルモン・細胞・器官名などを具体的に記入してください</div>
+          <input type="text" id="input_model" placeholder="例: バソプレシン、インスリン受容体、マクロファージ、交感神経、アミラーゼ など" oninput="saveData()">
         </div>
 
         <div class="field-group">
           <label class="field-label">生体内での働き・メカニズム<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、場所・作用・促進される条件をできる限り具体的に記入してください</div>
           <textarea id="input_role" placeholder="①どこで作られ、②どこに作用し、③何を調節するか？
 どんな条件（脱水、寒冷、徹夜、血圧上昇など）で分泌されるか？" oninput="saveData()"></textarea>
         </div>
@@ -507,18 +517,21 @@
 
         <div class="field-group">
           <label class="field-label">影響を与える体内パラメータ<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、どの数値がどう動くか（UP/DOWN/維持など）を具体的に記入してください</div>
           <textarea id="input_params" placeholder="このキャラが作用した時、ゲーム内のどの数値がどう動くか？
 （例: 浸透圧低下、血圧上昇、覚醒度UP、骨密度微減 など）" oninput="saveData()"></textarea>
         </div>
 
         <div class="field-group">
           <label class="field-label">発動トリガー・登場条件<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、どんなピンチや状況で現れるかを具体的に記入してください</div>
           <textarea id="input_trigger" placeholder="どんな体内異常やピンチでこのキャラが駆けつけるか？
 （例: 水分20%以下、炎天下の持久走、深夜24時以降の勉強 など）" oninput="saveData()"></textarea>
         </div>
 
         <div class="field-group">
           <label class="field-label">トレードオフ・副作用（リスクとリターン）<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、過剰分泌や働きすぎによるリスク・デメリットを具体的に記入してください</div>
           <textarea id="input_tradeoff" placeholder="過剰分泌や働きすぎによるデメリット・リスクはあるか？
 （例: 血圧は保てるが血管疲労、Caは上がるが骨がスカスカになる など）" oninput="saveData()"></textarea>
         </div>
@@ -535,11 +548,13 @@
 
         <div class="field-group">
           <label class="field-label">キャラクター名（あだ名）<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、名前・あだ名・由来を具体的に記入してください</div>
           <input type="text" id="input_char_name" placeholder="例: 保泉 守（バソ太）、夜守 メラ子 など" oninput="saveData()">
         </div>
 
         <div class="field-group">
           <label class="field-label">外見・性格・口調・決め台詞<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、見た目・口調・セリフの例をできる限り具体的に記入してください</div>
           <textarea id="input_char_setting" placeholder="・見た目: 髪型、制服の着こなし、持ち物（水筒など）
 ・性格: クール、過保護、完璧主義、夜行性など
 ・口調・セリフ: 「水分補給は済んだか？」「無駄な塩分排出は許さん！」など" oninput="saveData()"></textarea>
@@ -547,6 +562,7 @@
 
         <div class="field-group">
           <label class="field-label">既存キャラとの力学（協調・拮抗）<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、既存キャラ（インスリン等）との相性や態度を具体的に記入してください</div>
           <textarea id="input_relation" placeholder="V4既存キャラ（インスリン、グルカゴン、アドレナリン等）との相性
 （例: インスリンとは気が合う、利尿のアイツは天敵、受容体に嫌われている など）" oninput="saveData()"></textarea>
         </div>
@@ -577,6 +593,7 @@
 
         <div class="field-group">
           <label class="field-label">イベント案（場面・選択肢・パラメータ変化）<span class="badge-opt">任意</span></label>
+          <div class="ai-prompt-hint">生成AIが理解できるよう、トラブル内容とプレイヤーの選択肢A/B・結果を具体的に記入してください</div>
           <textarea id="input_event" placeholder="【いつ・どこで】体育祭の午後、グラウンドで
 【起こる出来事】暑さで倒れそうな主人公に駆け寄ってくる
 【選択肢】
@@ -586,7 +603,8 @@
 
         <div class="field-group">
           <label class="field-label">【イチオシ】絶対採用してほしいこだわり設定<span class="badge-opt">任意</span></label>
-          <textarea id="input_must" placeholder="生物学的な正確さ、ゲームバランスの面白さ、キャラクターのギャップなど、アピールしたい点を自由に書いてください。" oninput="saveData()"></textarea>
+          <div class="ai-prompt-hint">生成AIがゲーム実装時に最優先で反映すべきこだわりを、できる限り熱く具体的に記入してください</div>
+          <textarea  oninput="autoResize(this); saveData();"></textarea>
         </div>
       </div>
     </section>
@@ -632,7 +650,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       loadSavedData();
-      updateStepUI();
+      updateStepUI(); resizeAllTextareas();
     });
 
     function goToStep(step) {
@@ -652,6 +670,16 @@
       if (currentStep > 1) {
         goToStep(currentStep - 1);
       }
+    }
+
+    function autoResize(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = Math.max(el.scrollHeight, 150) + 'px';
+    }
+
+    function resizeAllTextareas() {
+      document.querySelectorAll('textarea').forEach(el => autoResize(el));
     }
 
     function updateStepUI() {
