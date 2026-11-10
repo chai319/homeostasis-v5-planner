@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>恒常性メモリアルV5 理系企画サイト</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-sub: #475569;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --border: #cbd5e1;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", Meiryo, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 96px; /* フッター固定ボタンの余白 */
+    }
+
+    /* ヘッダー */
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .header-content {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .save-indicator {
+      font-size: 0.8rem;
+      color: var(--success);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .save-indicator::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    /* プログレスバー */
+    .progress-bar-container {
+      background: #e2e8f0;
+      height: 4px;
+      width: 100%;
+    }
+    .progress-bar {
+      background: var(--primary);
+      height: 100%;
+      width: 16.6%;
+      transition: width 0.3s ease;
+    }
+
+    /* メインコンテナ（人体工学的最適幅: 680px） */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px 16px 24px;
+    }
+
+    /* ステップインジケータ（6ステップ） */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .step-pill {
+      flex: 1;
+      min-width: 50px;
+      text-align: center;
+      padding: 8px 2px;
+      background: #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .step-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .step-pill.completed {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    /* ステップカード */
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.2s ease forwards;
+    }
+    .step-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .section-desc {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 18px;
+    }
+
+    /* フォーム項目（全項目任意） */
+    .field-group {
+      margin-bottom: 18px;
+    }
+    .field-label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .field-label .badge-opt {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* 入力パーツ（人体工学: 48px以上、iOSズーム防止16px） */
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      font-size: 16px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      font-family: inherit;
+    }
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    textarea {
+      min-height: 90px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    /* 3カラム入力（基本情報） */
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 12px;
+    }
+    @media (max-width: 500px) {
+      .row-3 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .row-3 .field-group:last-child {
+        grid-column: span 2;
+      }
+    }
+
+    /* 参考カタログ（アコーディオン） */
+    details.catalog {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 18px;
+      font-size: 0.88rem;
+    }
+    details.catalog summary {
+      padding: 10px 14px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 46px;
+    }
+    details.catalog summary::-webkit-details-marker {
+      display: none;
+    }
+    details.catalog summary::after {
+      content: "+";
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    details.catalog[open] summary::after {
+      content: "−";
+    }
+    .catalog-body {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+    }
+    .catalog-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .catalog-table th,
+    .catalog-table td {
+      border: 1px solid #e2e8f0;
+      padding: 8px;
+      text-align: left;
+    }
+    .catalog-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* 下部固定ナビゲーション（Thumb Zone 最適化） */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      z-index: 30;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    .bottom-nav-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      flex: 1;
+      min-height: 52px;
+      padding: 0 16px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease, transform 0.05s ease;
+      touch-action: manipulation;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn-prev {
+      background: #f1f5f9;
+      color: var(--text-sub);
+      border: 1.5px solid var(--border);
+      flex: 0.35;
+    }
+    .btn-next {
+      background: var(--primary);
+      color: #ffffff;
+      flex: 0.65;
+    }
+    .btn-next:hover {
+      background: var(--primary-hover);
+    }
+    .btn-copy {
+      background: var(--success);
+      color: #ffffff;
+      width: 100%;
+      min-height: 56px;
+      font-size: 1.05rem;
+    }
+    .btn-form {
+      background: #334155;
+      color: #ffffff;
+      width: 100%;
+      min-height: 52px;
+      text-decoration: none;
+      margin-top: 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    /* プレビュー枠 */
+    .preview-box {
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    /* トースト通知 */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 50;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- トースト通知 -->
+  <div id="toast" class="toast">クリップボードにコピーしました！</div>
+
+  <!-- ヘッダー -->
+  <header>
+    <div class="header-content">
+      <div class="header-title">恒常性メモリアルV5 理系企画サイト</div>
+      <div id="save-status" class="save-indicator">自動保存済み</div>
+    </div>
+  </header>
+
+  <!-- 進捗バー -->
+  <div class="progress-bar-container">
+    <div id="progress-bar" class="progress-bar"></div>
+  </div>
+
+  <main>
+    <!-- ステップタブ（全6ステップ） -->
+    <div class="step-indicator">
+      <div class="step-pill active" onclick="goToStep(1)">1. 基本</div>
+      <div class="step-pill" onclick="goToStep(2)">2. モデル</div>
+      <div class="step-pill" onclick="goToStep(3)">3. メカニクス</div>
+      <div class="step-pill" onclick="goToStep(4)">4. キャラ</div>
+      <div class="step-pill" onclick="goToStep(5)">5. イベント</div>
+      <div class="step-pill" onclick="goToStep(6)">6. 送信</div>
+    </div>
+
+    <!-- ==========================================
+         STEP 1: 基本情報
+         ========================================== -->
+    <section id="step-1" class="step-panel active">
+      <div class="card">
+        <h2 class="section-title">基本情報</h2>
+        <p class="section-desc">企画者の情報を入力（すべて任意・スキップ可）。</p>
+
+        <div class="row-3">
+          <div class="field-group">
+            <label class="field-label">クラス<span class="badge-opt">任意</span></label>
+            <input type="text" id="input_class" placeholder="例: 3-5" oninput="saveData()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">番号<span class="badge-opt">任意</span></label>
+            <input type="text" id="input_num" placeholder="例: 15" oninput="saveData()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">氏名<span class="badge-opt">任意</span></label>
+            <input type="text" id="input_name" placeholder="例: 河瀬 太郎" oninput="saveData()">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 2: 生体モデル
+         ========================================== -->
+    <section id="step-2" class="step-panel">
+      <div class="card">
+        <h2 class="section-title">1. 生体モデルの選定</h2>
+        <p class="section-desc">キャラクターの元ネタとなるホルモン・器官を決定。</p>
+
+        <!-- 未登場・発展カタログ -->
+        <details class="catalog">
+          <summary>💡 モデル候補カタログ（未登場・発展ホルモン）</summary>
+          <div class="catalog-body">
+            <table class="catalog-table">
+              <tr><th>モデル名</th><th>分泌場所 / 作用</th><th>特徴・おすすめ設定</th></tr>
+              <tr><td><b>バソプレシン</b></td><td>脳下垂体後葉 → 腎臓</td><td>水の再吸収促進。喉が渇いた時の救世主。過保護系。</td></tr>
+              <tr><td><b>アルドステロン</b></td><td>副腎皮質 → 腎臓</td><td>Na⁺再吸収・血圧維持。持久走に命をかける。</td></tr>
+              <tr><td><b>メラトニン</b></td><td>松果体 → 脳・全身</td><td>概日リズム・睡眠促進。夜更かしスマホで分泌停止。</td></tr>
+              <tr><td><b>パラトルモン</b></td><td>副甲状腺 → 骨・腎臓</td><td>血中Ca²⁺上昇。骨を削ってでもCaを守る過激派。</td></tr>
+              <tr><td><b>カルシトニン</b></td><td>甲状腺 → 骨</td><td>血中Ca²⁺低下。骨を守りたい穏健派（パラトルモンと拮抗）。</td></tr>
+              <tr><td><b>ANP（心房性Na利尿）</b></td><td>心房 → 腎臓・血管</td><td>血圧低下・利尿。血圧が上がりすぎた時のブレーキ役。</td></tr>
+            </table>
+          </div>
+        </details>
+
+        <div class="field-group">
+          <label class="field-label">モデルとなる生体要素<span class="badge-opt">任意</span></label>
+          <input type="text" id="input_model" placeholder="例: バソプレシン、メラトニン、カルシトニン など" oninput="saveData()">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">生体内での働き・メカニズム<span class="badge-opt">任意</span></label>
+          <textarea id="input_role" placeholder="①どこで作られ、②どこに作用し、③何を調節するか？
+どんな条件（脱水、寒冷、徹夜、血圧上昇など）で分泌されるか？" oninput="saveData()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 3: ゲームメカニクス・数値設計（理系特化）
+         ========================================== -->
+    <section id="step-3" class="step-panel">
+      <div class="card">
+        <h2 class="section-title">2. ゲームメカニクス・数値設計</h2>
+        <p class="section-desc">生体反応をゲームのルール・数値パラメータに落とし込みます。</p>
+
+        <!-- パラメータカタログ -->
+        <details class="catalog">
+          <summary>💡 ゲーム内の体内パラメータ例</summary>
+          <div class="catalog-body">
+            <ul style="padding-left: 20px; line-height: 1.8; font-size: 0.85rem;">
+              <li><b>体液浸透圧</b>（水分量・塩分濃度）</li>
+              <li><b>血糖値</b>（エネルギー源・だるさ）</li>
+              <li><b>体温</b>（発汗・シバリング）</li>
+              <li><b>血圧・心拍数</b>（緊張・興奮・疲労）</li>
+              <li><b>血中Ca²⁺濃度</b>（筋肉収縮・神経伝達）</li>
+              <li><b>覚醒度 / 概日リズム</b>（集中力・眠気）</li>
+            </ul>
+          </div>
+        </details>
+
+        <div class="field-group">
+          <label class="field-label">影響を与える体内パラメータ<span class="badge-opt">任意</span></label>
+          <textarea id="input_params" placeholder="このキャラが作用した時、ゲーム内のどの数値がどう動くか？
+（例: 浸透圧低下、血圧上昇、覚醒度UP、骨密度微減 など）" oninput="saveData()"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">発動トリガー・登場条件<span class="badge-opt">任意</span></label>
+          <textarea id="input_trigger" placeholder="どんな体内異常やピンチでこのキャラが駆けつけるか？
+（例: 水分20%以下、炎天下の持久走、深夜24時以降の勉強 など）" oninput="saveData()"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">トレードオフ・副作用（リスクとリターン）<span class="badge-opt">任意</span></label>
+          <textarea id="input_tradeoff" placeholder="過剰分泌や働きすぎによるデメリット・リスクはあるか？
+（例: 血圧は保てるが血管疲労、Caは上がるが骨がスカスカになる など）" oninput="saveData()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 4: キャラクター設定
+         ========================================== -->
+    <section id="step-4" class="step-panel">
+      <div class="card">
+        <h2 class="section-title">3. キャラクターの個性・力学</h2>
+        <p class="section-desc">モデルの働きを外見・性格・既存キャラとの関係に落とし込みます。</p>
+
+        <div class="field-group">
+          <label class="field-label">キャラクター名（あだ名）<span class="badge-opt">任意</span></label>
+          <input type="text" id="input_char_name" placeholder="例: 保泉 守（バソ太）、夜守 メラ子 など" oninput="saveData()">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">外見・性格・口調・決め台詞<span class="badge-opt">任意</span></label>
+          <textarea id="input_char_setting" placeholder="・見た目: 髪型、制服の着こなし、持ち物（水筒など）
+・性格: クール、過保護、完璧主義、夜行性など
+・口調・セリフ: 「水分補給は済んだか？」「無駄な塩分排出は許さん！」など" oninput="saveData()"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">既存キャラとの力学（協調・拮抗）<span class="badge-opt">任意</span></label>
+          <textarea id="input_relation" placeholder="V4既存キャラ（インスリン、グルカゴン、アドレナリン等）との相性
+（例: インスリンとは気が合う、利尿のアイツは天敵、受容体に嫌われている など）" oninput="saveData()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 5: イベント設計＆こだわり
+         ========================================== -->
+    <section id="step-5" class="step-panel">
+      <div class="card">
+        <h2 class="section-title">4. V4追加イベント＆選択肢</h2>
+        <p class="section-desc">ゲーム内で起こるトラブルとプレイヤーの選択肢を設計。</p>
+
+        <!-- 行事カタログ -->
+        <details class="catalog">
+          <summary>💡 V4の主な行事・場面一覧</summary>
+          <div class="catalog-body">
+            <ul style="padding-left: 20px; line-height: 1.8; font-size: 0.85rem;">
+              <li><b>山登り（山の子）</b>: 登山の疲労・脱水・低酸素のピンチ</li>
+              <li><b>中間考査</b>: テスト前の徹夜・緊張・ストレス</li>
+              <li><b>体育祭</b>: 炎天下での持久走・発汗・熱中症危機</li>
+              <li><b>湖上実習（湖の子）</b>: 船上生活・環境変化・体調管理</li>
+              <li><b>下校・休日</b>: 購買の買い食い・ゲーム徹夜・日常会話</li>
+            </ul>
+          </div>
+        </details>
+
+        <div class="field-group">
+          <label class="field-label">イベント案（場面・選択肢・パラメータ変化）<span class="badge-opt">任意</span></label>
+          <textarea id="input_event" placeholder="【いつ・どこで】体育祭の午後、グラウンドで
+【起こる出来事】暑さで倒れそうな主人公に駆け寄ってくる
+【選択肢】
+ A: 水筒の水を飲む（浸透圧低下・バソ太喜ぶ）
+ B: 我慢して走る（脱水警報・激怒される）" oninput="saveData()"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">【イチオシ】絶対採用してほしいこだわり設定<span class="badge-opt">任意</span></label>
+          <textarea id="input_must" placeholder="生物学的な正確さ、ゲームバランスの面白さ、キャラクターのギャップなど、アピールしたい点を自由に書いてください。" oninput="saveData()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 6: コピー＆送信
+         ========================================== -->
+    <section id="step-6" class="step-panel">
+      <div class="card">
+        <h2 class="section-title">5. 企画書の完成と送信</h2>
+        <p class="section-desc">内容を確認し、ボタンを押してフォームへ貼り付けてください。</p>
+
+        <div class="field-group">
+          <label class="field-label">整形された提出用テキスト</label>
+          <div id="formatted_preview" class="preview-box"></div>
+        </div>
+
+        <button type="button" class="btn btn-copy" onclick="copyToClipboard()">
+          📋 全内容を一括コピーする
+        </button>
+
+        <!-- Googleフォームへのリンク（理系専用本番フォーム直結） -->
+        <a id="form-link" href="https://docs.google.com/forms/d/1fvuRYeJcfa8YyXvRZdr8LGQTzISyHmzYV_BzopnngBc/viewform" target="_blank" rel="noopener noreferrer" class="btn-form">
+          Googleフォームを開いて貼り付ける ↗
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 下部固定ナビゲーション（Thumb Zone） -->
+  <footer class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button type="button" id="btn-prev" class="btn btn-prev" onclick="prevStep()" style="display: none;">前へ</button>
+      <button type="button" id="btn-next" class="btn btn-next" onclick="nextStep()">次へ進む →</button>
+    </div>
+  </footer>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 6;
+    const STORAGE_KEY = "homeostasis_v5_science_planner_data";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadSavedData();
+      updateStepUI();
+    });
+
+    function goToStep(step) {
+      if (step < 1 || step > totalSteps) return;
+      currentStep = step;
+      updateStepUI();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function nextStep() {
+      if (currentStep < totalSteps) {
+        goToStep(currentStep + 1);
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        goToStep(currentStep - 1);
+      }
+    }
+
+    function updateStepUI() {
+      for (let i = 1; i <= totalSteps; i++) {
+        const panel = document.getElementById(`step-${i}`);
+        if (panel) {
+          panel.classList.toggle("active", i === currentStep);
+        }
+      }
+
+      const progress = (currentStep / totalSteps) * 100;
+      document.getElementById("progress-bar").style.width = `${progress}%`;
+
+      const pills = document.querySelectorAll(".step-pill");
+      pills.forEach((pill, idx) => {
+        const stepNum = idx + 1;
+        pill.classList.toggle("active", stepNum === currentStep);
+        pill.classList.toggle("completed", stepNum < currentStep);
+      });
+
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+
+      if (currentStep === 1) {
+        btnPrev.style.display = "none";
+        btnNext.style.flex = "1";
+        btnNext.textContent = "次へ進む →";
+      } else if (currentStep === totalSteps) {
+        btnPrev.style.display = "inline-flex";
+        btnPrev.style.flex = "0.35";
+        btnNext.style.display = "none";
+      } else {
+        btnPrev.style.display = "inline-flex";
+        btnPrev.style.flex = "0.35";
+        btnNext.style.display = "inline-flex";
+        btnNext.style.flex = "0.65";
+        btnNext.textContent = "次へ進む →";
+      }
+
+      if (currentStep === totalSteps) {
+        generatePreview();
+      }
+    }
+
+    function saveData() {
+      const data = {
+        class: document.getElementById("input_class").value,
+        num: document.getElementById("input_num").value,
+        name: document.getElementById("input_name").value,
+        model: document.getElementById("input_model").value,
+        role: document.getElementById("input_role").value,
+        params: document.getElementById("input_params").value,
+        trigger: document.getElementById("input_trigger").value,
+        tradeoff: document.getElementById("input_tradeoff").value,
+        char_name: document.getElementById("input_char_name").value,
+        char_setting: document.getElementById("input_char_setting").value,
+        relation: document.getElementById("input_relation").value,
+        event: document.getElementById("input_event").value,
+        must: document.getElementById("input_must").value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      const status = document.getElementById("save-status");
+      status.textContent = "保存完了";
+      status.style.opacity = "1";
+      setTimeout(() => {
+        status.style.opacity = "0.8";
+      }, 1000);
+    }
+
+    function loadSavedData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        if (data.class) document.getElementById("input_class").value = data.class;
+        if (data.num) document.getElementById("input_num").value = data.num;
+        if (data.name) document.getElementById("input_name").value = data.name;
+        if (data.model) document.getElementById("input_model").value = data.model;
+        if (data.role) document.getElementById("input_role").value = data.role;
+        if (data.params) document.getElementById("input_params").value = data.params;
+        if (data.trigger) document.getElementById("input_trigger").value = data.trigger;
+        if (data.tradeoff) document.getElementById("input_tradeoff").value = data.tradeoff;
+        if (data.char_name) document.getElementById("input_char_name").value = data.char_name;
+        if (data.char_setting) document.getElementById("input_char_setting").value = data.char_setting;
+        if (data.relation) document.getElementById("input_relation").value = data.relation;
+        if (data.event) document.getElementById("input_event").value = data.event;
+        if (data.must) document.getElementById("input_must").value = data.must;
+      } catch (e) {
+        console.error("Failed to load saved data", e);
+      }
+    }
+
+    function generateFormattedText() {
+      const c = document.getElementById("input_class").value.trim() || "（未記入）";
+      const n = document.getElementById("input_num").value.trim() || "（未記入）";
+      const name = document.getElementById("input_name").value.trim() || "（未記入）";
+      const model = document.getElementById("input_model").value.trim() || "（未記入）";
+      const role = document.getElementById("input_role").value.trim() || "（未記入）";
+      const params = document.getElementById("input_params").value.trim() || "（未記入）";
+      const trigger = document.getElementById("input_trigger").value.trim() || "（未記入）";
+      const tradeoff = document.getElementById("input_tradeoff").value.trim() || "（未記入）";
+      const charName = document.getElementById("input_char_name").value.trim() || "（未記入）";
+      const charSetting = document.getElementById("input_char_setting").value.trim() || "（未記入）";
+      const relation = document.getElementById("input_relation").value.trim() || "（未記入）";
+      const event = document.getElementById("input_event").value.trim() || "（未記入）";
+      const must = document.getElementById("input_must").value.trim() || "（未記入）";
+
+      return `【恒常性メモリアルV5 理系企画提案書】
+--------------------------------------------------
+■ 基本情報
+クラス: ${c} / 番号: ${n} / 氏名: ${name}
+
+■ 1. 生体モデル
+モデル名: ${model}
+生体内での働き・メカニズム:
+${role}
+
+■ 2. ゲームメカニクス・数値設計
+影響を与える体内パラメータ:
+${params}
+発動トリガー・登場条件:
+${trigger}
+トレードオフ・副作用（リスクとリターン）:
+${tradeoff}
+
+■ 3. キャラクター設定
+キャラ名: ${charName}
+外見・性格・口調・決め台詞:
+${charSetting}
+既存キャラとの力学（協調・拮抗）:
+${relation}
+
+■ 4. V4追加イベント＆こだわり
+イベント案（場面・選択肢・パラメータ変化）:
+${event}
+
+【イチオシ】V5に絶対採用してほしいこだわり:
+${must}
+--------------------------------------------------`;
+    }
+
+    function generatePreview() {
+      document.getElementById("formatted_preview").textContent = generateFormattedText();
+    }
+
+    function copyToClipboard() {
+      const text = generateFormattedText();
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("クリップボードにコピーしました！");
+      }).catch(() => {
+        const area = document.createElement("textarea");
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        document.body.removeChild(area);
+        showToast("クリップボードにコピーしました！");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
