@@ -604,7 +604,7 @@
         <div class="field-group">
           <label class="field-label">【イチオシ】絶対採用してほしいこだわり設定<span class="badge-opt">任意</span></label>
           <div class="ai-prompt-hint">生成AIがゲーム実装時に最優先で反映すべきこだわりを、できる限り熱く具体的に記入してください</div>
-          <textarea  oninput="autoResize(this); saveData();"></textarea>
+          <textarea id="input_must" placeholder="生物学的な正確さ、ゲームバランスの面白さ、キャラクターのギャップなど、アピールしたい点を自由に書いてください。" oninput="autoResize(this); saveData();"></textarea>
         </div>
       </div>
     </section>
@@ -778,20 +778,25 @@
       return text.split("\n").map(line => pad + line).join("\n");
     }
 
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return el && el.value ? el.value.trim() : "未記入";
+    }
+
     function generateFormattedText() {
-      const c = document.getElementById("input_class").value.trim() || "未記入";
-      const n = document.getElementById("input_num").value.trim() || "未記入";
-      const name = document.getElementById("input_name").value.trim() || "未記入";
-      const model = document.getElementById("input_model").value.trim() || "未記入";
-      const role = document.getElementById("input_role").value.trim() || "未記入";
-      const params = document.getElementById("input_params").value.trim() || "未記入";
-      const trigger = document.getElementById("input_trigger").value.trim() || "未記入";
-      const tradeoff = document.getElementById("input_tradeoff").value.trim() || "未記入";
-      const charName = document.getElementById("input_char_name").value.trim() || "未記入";
-      const charSetting = document.getElementById("input_char_setting").value.trim() || "未記入";
-      const relation = document.getElementById("input_relation").value.trim() || "未記入";
-      const event = document.getElementById("input_event").value.trim() || "未記入";
-      const must = document.getElementById("input_must").value.trim() || "未記入";
+      const c = getVal("input_class");
+      const n = getVal("input_num");
+      const name = getVal("input_name");
+      const model = getVal("input_model");
+      const role = getVal("input_role");
+      const params = getVal("input_params");
+      const trigger = getVal("input_trigger");
+      const tradeoff = getVal("input_tradeoff");
+      const charName = getVal("input_char_name");
+      const charSetting = getVal("input_char_setting");
+      const relation = getVal("input_relation");
+      const event = getVal("input_event");
+      const must = getVal("input_must");
 
       return `\`\`\`yaml
 # HOMEOSTASIS_MEMORIAL_V5_PROPOSAL
@@ -830,22 +835,55 @@ ${indent(must, 4)}
     }
 
     function generatePreview() {
-      document.getElementById("formatted_preview").textContent = generateFormattedText();
+      const el = document.getElementById("formatted_preview");
+      if (el) el.textContent = generateFormattedText();
     }
 
     function copyToClipboard() {
       const text = generateFormattedText();
-      navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector(".btn-copy");
+
+      function onSuccess() {
         showToast("クリップボードにコピーしました！");
-      }).catch(() => {
-        const area = document.createElement("textarea");
-        area.value = text;
-        document.body.appendChild(area);
-        area.select();
-        document.execCommand("copy");
-        document.body.removeChild(area);
-        showToast("クリップボードにコピーしました！");
-      });
+        if (btn) {
+          const originalText = btn.textContent;
+          btn.textContent = "✓ コピー完了！";
+          btn.style.background = "#047857";
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = "";
+          }, 2000);
+        }
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(err => {
+          fallbackCopy(text, onSuccess);
+        });
+      } else {
+        fallbackCopy(text, onSuccess);
+      }
+    }
+
+    function fallbackCopy(text, cb) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.top = "-9999px";
+      textArea.style.left = "-9999px";
+      textArea.setAttribute("readonly", "");
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, 99999);
+      try {
+        const successful = document.execCommand("copy");
+        if (successful && cb) cb();
+      } catch (err) {
+        console.error("Fallback copy failed", err);
+        showToast("コピーに失敗しました。プレビューから直接コピーしてください。");
+      }
+      document.body.removeChild(textArea);
     }
 
     function showToast(msg) {
