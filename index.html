@@ -597,7 +597,7 @@
     <section id="step-6" class="step-panel">
       <div class="card">
         <h2 class="section-title">5. 企画書の完成と送信</h2>
-        <p class="section-desc">内容を確認し、ボタンを押してフォームへ貼り付けてください。</p>
+        <p class="section-desc">「一括コピー」を押して、フォームの【貼り付け欄】に1回ペーストするだけで提出完了です！</p>
 
         <div class="field-group">
           <label class="field-label">整形された提出用テキスト</label>
@@ -745,53 +745,60 @@
       }
     }
 
+    function indent(text, spaces) {
+      const pad = " ".repeat(spaces);
+      return text.split("\n").map(line => pad + line).join("\n");
+    }
+
     function generateFormattedText() {
-      const c = document.getElementById("input_class").value.trim() || "（未記入）";
-      const n = document.getElementById("input_num").value.trim() || "（未記入）";
-      const name = document.getElementById("input_name").value.trim() || "（未記入）";
-      const model = document.getElementById("input_model").value.trim() || "（未記入）";
-      const role = document.getElementById("input_role").value.trim() || "（未記入）";
-      const params = document.getElementById("input_params").value.trim() || "（未記入）";
-      const trigger = document.getElementById("input_trigger").value.trim() || "（未記入）";
-      const tradeoff = document.getElementById("input_tradeoff").value.trim() || "（未記入）";
-      const charName = document.getElementById("input_char_name").value.trim() || "（未記入）";
-      const charSetting = document.getElementById("input_char_setting").value.trim() || "（未記入）";
-      const relation = document.getElementById("input_relation").value.trim() || "（未記入）";
-      const event = document.getElementById("input_event").value.trim() || "（未記入）";
-      const must = document.getElementById("input_must").value.trim() || "（未記入）";
+      const c = document.getElementById("input_class").value.trim() || "未記入";
+      const n = document.getElementById("input_num").value.trim() || "未記入";
+      const name = document.getElementById("input_name").value.trim() || "未記入";
+      const model = document.getElementById("input_model").value.trim() || "未記入";
+      const role = document.getElementById("input_role").value.trim() || "未記入";
+      const params = document.getElementById("input_params").value.trim() || "未記入";
+      const trigger = document.getElementById("input_trigger").value.trim() || "未記入";
+      const tradeoff = document.getElementById("input_tradeoff").value.trim() || "未記入";
+      const charName = document.getElementById("input_char_name").value.trim() || "未記入";
+      const charSetting = document.getElementById("input_char_setting").value.trim() || "未記入";
+      const relation = document.getElementById("input_relation").value.trim() || "未記入";
+      const event = document.getElementById("input_event").value.trim() || "未記入";
+      const must = document.getElementById("input_must").value.trim() || "未記入";
 
-      return `【恒常性メモリアルV5 理系企画提案書】
---------------------------------------------------
-■ 基本情報
-クラス: ${c} / 番号: ${n} / 氏名: ${name}
+      return `\`\`\`yaml
+# HOMEOSTASIS_MEMORIAL_V5_PROPOSAL
+creator:
+  class: "${c}"
+  number: "${n}"
+  name: "${name}"
 
-■ 1. 生体モデル
-モデル名: ${model}
-生体内での働き・メカニズム:
-${role}
+biology_model:
+  target_element: "${model}"
+  mechanism: |
+${indent(role, 4)}
 
-■ 2. ゲームメカニクス・数値設計
-影響を与える体内パラメータ:
-${params}
-発動トリガー・登場条件:
-${trigger}
-トレードオフ・副作用（リスクとリターン）:
-${tradeoff}
+game_mechanics:
+  parameters: |
+${indent(params, 4)}
+  trigger_condition: |
+${indent(trigger, 4)}
+  tradeoff_side_effects: |
+${indent(tradeoff, 4)}
 
-■ 3. キャラクター設定
-キャラ名: ${charName}
-外見・性格・口調・決め台詞:
-${charSetting}
-既存キャラとの力学（協調・拮抗）:
-${relation}
+character_flavor:
+  name: "${charName}"
+  profile_and_lines: |
+${indent(charSetting, 4)}
+  relation_dynamics: |
+${indent(relation, 4)}
 
-■ 4. V4追加イベント＆こだわり
-イベント案（場面・選択肢・パラメータ変化）:
-${event}
+event_scenario:
+  content: |
+${indent(event, 4)}
 
-【イチオシ】V5に絶対採用してほしいこだわり:
-${must}
---------------------------------------------------`;
+core_highlight: |
+${indent(must, 4)}
+\`\`\``;
     }
 
     function generatePreview() {
